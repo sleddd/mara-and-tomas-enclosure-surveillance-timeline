@@ -19,7 +19,7 @@
   --ink-soft: var(--iron-soft);
   --accent: var(--indigo);
   --line: rgba(58, 58, 56, 0.25);
-  --card: rgba(255, 252, 244, 0.72);
+  --card: rgba(255, 252, 244, 0.92);
   --corridor-bg: #E3D8C0;
   --corridor-ink: #4A463D;
   --glow: #9fb4e8;
@@ -28,9 +28,8 @@
   --sans: "Lato", "Open Sans", "Segoe UI", system-ui, sans-serif;
 
   --topbar-h: 66px;
+  --nav-h: 58px;
   --ground-h: 78px;
-  --era-w: 100vw;
-  --corridor-w: max(46vw, 420px);
 }
 
 html[data-theme="dark"] {
@@ -40,7 +39,7 @@ html[data-theme="dark"] {
   --ink-soft: #B7AE97;
   --accent: #93A7DC;
   --line: rgba(232, 223, 201, 0.25);
-  --card: rgba(38, 37, 33, 0.78);
+  --card: rgba(30, 29, 26, 0.94);
   --corridor-bg: #1B1A18;
   --corridor-ink: #CFC5A9;
   --register-red: #C86B5F;
@@ -155,57 +154,74 @@ body {
 .tool-btn:hover { border-color: var(--ink-soft); }
 .tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- scroller & panels ---------- */
+/* ============================================================
+   Layered stage architecture
 
-.scroller {
-  position: absolute;
+   .stage is fixed to the viewport and never scrolls: it holds
+   the ground texture, the prop art, and the walking figures for
+   whichever stop is current. It sits behind everything else.
+
+   .reader is also fixed to the viewport, sitting above the
+   stage, and is the *only* scrollable element on the page — its
+   own content (one stop's text + ledger) is swapped by app.js.
+   Because the background never moves, there is nothing for a
+   vertical scroll gesture to compete with: it always means "read
+   the current stop," on trackpad, wheel, or touch alike.
+
+   Moving between stops is explicit (Next/Previous, arrow keys,
+   the minimap) rather than a scroll gesture, so there is no axis
+   ambiguity to arbitrate anywhere in this design.
+   ============================================================ */
+
+.stage {
+  position: fixed;
   inset: var(--topbar-h) 0 0 0;
-  display: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  scrollbar-color: var(--clay) transparent;
-}
-.scroller:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
-
-.panel {
-  position: relative;
-  flex: 0 0 auto;
-  height: 100%;
+  z-index: 1;
   overflow: hidden;
+  pointer-events: none;
 }
 
-.panel.era {
-  width: var(--era-w);
-  scroll-snap-align: center;
+.stage.final .ground { width: 58%; }
+.stage.final .ground::after {
+  content: "";
+  position: absolute;
+  right: -1px; top: 0; bottom: 0;
+  width: 90px;
+  background: linear-gradient(90deg, transparent, var(--bg));
+  transform: translateX(100%);
 }
 
-.panel.corridor {
-  width: var(--corridor-w);
-  background: var(--corridor-bg);
-  color: var(--corridor-ink);
-  border-left: 1px solid var(--line);
-  border-right: 1px solid var(--line);
-}
-
-/* text block — bounded between the topbar and the ground line;
-   scrolls internally (trackpad/touch/wheel all work — see .panel-text
-   in app.js's wheel handler) rather than overlapping the prop art below it */
-.panel-text {
-  position: relative;
-  z-index: 3;
-  height: calc(100% - var(--ground-h));
-  max-height: calc(100% - var(--ground-h));
+.reader {
+  position: fixed;
+  inset: var(--topbar-h) 0 var(--nav-h) 0;
+  z-index: 10;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--clay) transparent;
-  padding: 34px 24px 28px 7vw;
+  background: transparent;
+}
+.reader:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+/* .panel-content lays out the story text and the ledger as a
+   flex row so the reader's scrollable height is driven by
+   whichever column is actually taller (a long his/hers-split
+   ledger can outgrow the vignette, or vice versa). */
+.panel-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 34px 5vw 40px 7vw;
+  min-height: 100%;
+}
+
+.panel-text {
+  flex: 1 1 auto;
+  min-width: 0;
   /* scales continuously with viewport width — no seam at any
      breakpoint, unlike a min(px, vw) pair tuned for two fixed sizes */
-  width: clamp(280px, 46vw, 560px);
-  box-sizing: border-box;
+  max-width: 560px;
 }
 .panel-act {
   font-size: 10px;
@@ -247,17 +263,13 @@ body {
   color: var(--ink);
 }
 
-/* the registry ledger — identical at every stop */
+/* the registry ledger — identical at every stop. A flex sibling
+   of .panel-text, sized to its own content. */
 .ledger {
-  position: absolute;
+  position: relative;
   z-index: 4;
-  top: 34px;
-  right: 5vw;
+  flex: 0 0 auto;
   width: clamp(240px, 38vw, 480px);
-  max-height: calc(100vh - var(--topbar-h) - var(--ground-h) - 70px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
   font-family: var(--sans);
   font-size: 12.5px;
   line-height: 1.55;
@@ -265,6 +277,7 @@ body {
   border: 1px solid var(--line);
   border-top: 3px solid var(--iron);
   padding: 14px 18px 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
 }
 html[data-theme="dark"] .ledger { border-top-color: var(--ink); }
 
@@ -347,18 +360,11 @@ html[data-theme="dark"] .ledger { border-top-color: var(--ink); }
 
 /* corridors */
 .corridor-inner {
-  position: relative;
-  z-index: 3;
-  height: calc(100% - var(--ground-h));
-  max-height: calc(100% - var(--ground-h));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--clay) transparent;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 24px clamp(20px, 4vw, 56px);
+  padding: 40px clamp(20px, 8vw, 120px);
 }
 .corridor-kicker {
   font-family: var(--sans);
@@ -375,18 +381,13 @@ html[data-theme="dark"] .ledger { border-top-color: var(--ink); }
 }
 .corridor-mechanism {
   font-family: var(--serif);
-  font-size: clamp(14px, 1.15vw, 16px);
+  font-size: clamp(15px, 1.3vw, 17px);
   line-height: 1.62;
-  max-width: 34rem;
+  max-width: 30rem;
 }
 .corridor-mechanism::first-letter { color: var(--clay); }
-.corridor-rails {
-  position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(0,0,0,0.14), transparent 14%, transparent 86%, rgba(0,0,0,0.14));
-}
 
-/* ---------- props / parallax layers ---------- */
+/* ---------- props / parallax layers (fixed, in .stage) ---------- */
 
 .prop-layer {
   position: absolute;
@@ -395,12 +396,13 @@ html[data-theme="dark"] .ledger { border-top-color: var(--ink); }
   width: 100%;
   height: calc(100% - var(--ground-h));
   pointer-events: none;
+  transition: transform 0.5s ease;
 }
 .prop-layer svg {
   position: absolute;
   bottom: 0;
   right: 4vw;
-  height: min(62vh, 520px);
+  height: min(58vh, 500px);
   width: auto;
   max-width: 88vw;
   overflow: visible;
@@ -511,36 +513,25 @@ html[data-theme="dark"] .g-glass {
 .ground.blend { background: none; }
 .ground.blend > div::before { display: none; }
 
-/* the ground stops before the edge of the last panel */
-.panel.final .ground { width: 58%; }
-.panel.final .ground::after {
-  content: "";
-  position: absolute;
-  right: -1px; top: 0; bottom: 0;
-  width: 90px;
-  background: linear-gradient(90deg, transparent, var(--bg));
-  transform: translateX(100%);
-}
-
 /* ---------- the walking figures ---------- */
 
 .figures-layer {
-  position: fixed;
+  position: absolute;
   left: 0;
+  right: 0;
   bottom: var(--ground-h);
-  z-index: 20;
+  z-index: 3;
   pointer-events: none;
 }
 
 .figures {
   position: absolute;
   bottom: 0;
-  left: 15vw;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: flex-end;
-  transition: opacity 0.22s ease;
 }
-.figures.swapping { opacity: 0; }
 
 .figures svg { display: block; overflow: visible; }
 .fig-shadow {
@@ -552,27 +543,24 @@ body.doubles-active .fig-shadow {
   opacity: 0.55;
 }
 
-/* ---------- hint ---------- */
-.hint {
-  position: fixed;
-  right: 22px;
-  bottom: calc(var(--ground-h) + 14px);
-  z-index: 30;
-  font-family: var(--sans);
-  font-size: 12px;
-  color: var(--ink-soft);
-  background: var(--card);
-  border: 1px solid var(--line);
-  padding: 5px 10px;
-  border-radius: 999px;
-  opacity: 0.9;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
+/* ---------- scroll-triggered blur ----------
+   Once the reader has scrolled down roughly a screen's worth into
+   a long stop, the fixed background behind it recedes — blurred
+   and dimmed — so it never competes with reading. At rest (top of
+   any stop) the background stays sharp. Because .stage never
+   moves, app.js just toggles this one class directly on it. */
+.stage {
+  filter: blur(0) brightness(1);
+  transition: filter 0.4s ease;
 }
-.hint.gone { opacity: 0; }
+.stage.scrolled-deep {
+  filter: blur(7px) brightness(0.8);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage { transition: none; }
+}
 
-/* ---------- final panel ---------- */
-.panel.final .panel-vignette { max-width: 32rem; }
+/* ---------- final stop ---------- */
 .final-question {
   position: absolute;
   z-index: 3;
@@ -585,73 +573,94 @@ body.doubles-active .fig-shadow {
   max-width: 220px;
 }
 
+/* ---------- bottom nav ---------- */
+
+.stop-nav {
+  position: fixed;
+  inset: auto 0 0 0;
+  height: var(--nav-h);
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  gap: 12px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--line);
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.nav-btn:hover:not(:disabled) { border-color: var(--clay); color: var(--clay); }
+.nav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+.stop-nav-pos {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.progress {
+  position: fixed;
+  inset: auto 0 var(--nav-h) 0;
+  height: 3px;
+  z-index: 41;
+  background: var(--register-red);
+  width: 0;
+  transition: width 0.3s ease;
+}
+
 /* ---------- responsive ---------- */
 
-/* Between roughly phone width and ~1180px, the two-column layout
-   (story column + floating ledger) no longer has room for either
-   to hold a readable line length. Stack them in normal document
-   flow instead — same treatment as the phone breakpoint below,
-   just triggered earlier. */
-/* Column widths above already scale continuously via clamp() —
-   no seam to patch here. Below ~1180px, just tighten padding,
-   shrink type slightly, and dim the props so they don't compete
-   with the now-narrower text columns. Each column keeps its own
-   internal scroll (set on .panel-text / .ledger) as the safety
-   valve for any stop whose copy still runs long. */
 @media (max-width: 1180px) {
-  .panel-text { padding-right: 18px; }
   .panel-vignette { font-size: clamp(14px, 1.5vw, 16.5px); line-height: 1.5; }
   .ledger { font-size: 12px; }
-  .prop-layer svg { opacity: 0.55; height: min(52vh, 460px); }
+  .prop-layer svg { opacity: 0.6; height: min(50vh, 440px); }
 }
 
 @media (max-width: 900px) {
-  :root { --ground-h: 64px; --corridor-w: 78vw; }
+  :root { --ground-h: 46px; --nav-h: 54px; }
   .minimap { display: none; }
   .topbar { justify-content: space-between; }
-  .panel-text {
-    height: auto;
-    max-height: none;
-    overflow-y: visible;
-    padding: 22px 6vw 0;
-    max-width: none;
+  .panel-content {
+    flex-direction: column;
+    padding: 22px 6vw 32px;
+    gap: 0;
   }
+  .panel-text { max-width: none; }
   .panel-title { font-size: clamp(26px, 7vw, 34px); }
   .ledger {
-    position: relative;
-    top: auto; right: auto;
     width: auto;
-    max-height: none;
-    overflow-y: visible;
-    margin: 18px 6vw 0;
+    margin: 18px 0 0;
     font-size: 11.5px;
   }
-  .prop-layer svg { height: 34vh; right: 2vw; opacity: 0.55; }
-  .figures { left: 8vw; }
-  .final-question { left: 8vw; max-width: 70vw; }
-}
-
-/* mobile progress bar replaces minimap */
-.progress {
-  display: none;
-}
-@media (max-width: 900px) {
-  .progress {
-    display: block;
-    position: fixed;
-    top: var(--topbar-h);
-    left: 0;
-    height: 3px;
-    background: var(--register-red);
-    z-index: 41;
-    width: 0;
-  }
+  .corridor-inner { padding: 32px 6vw; }
+  .final-question { left: 6vw; max-width: 70vw; }
+  .nav-btn span { display: none; }
+  .nav-btn { padding: 10px 14px; }
+  .stage { display: none; }
 }
 
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .scroller { scroll-behavior: auto !important; }
-  .figures { transition: none; }
   .fig-shadow { transition: none; }
 }
 

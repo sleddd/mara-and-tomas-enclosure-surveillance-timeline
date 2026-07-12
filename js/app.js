@@ -1,19 +1,36 @@
 /* ============================================================
    Mara & Tomas — app wiring.
-   Renders panels from STOPS, drives the walk from scroll,
-   parallax on prop layers, minimap, keyboard, deep links.
+
+   Index-driven, not scroll-driven: one STOPS[] entry is "current"
+   at a time. The background stage (ground/props/figures) is fixed
+   to the viewport and swaps its contents when the current stop
+   changes. The reader panel (text + ledger) is the one scrollable
+   element, also fixed to the viewport, sitting above the stage.
+   Moving between stops is explicit — Next/Previous buttons, arrow
+   keys, or the minimap — there is no scroll-through-panels gesture
+   to arbitrate, so touch and trackpad both behave simply: vertical
+   scroll always means "read," nothing else.
    ============================================================ */
 
 (function () {
-  const scroller = document.getElementById("scroller");
-  const minimapEl = document.getElementById("minimap");
+  const stage = document.getElementById("stage");
+  const propFar = document.getElementById("propFar");
+  const propNear = document.getElementById("propNear");
+  const groundEl = document.getElementById("ground");
+  const finalQuestionEl = document.getElementById("finalQuestion");
   const figuresEl = document.getElementById("figures");
-  const hintEl = document.getElementById("hint");
+  const reader = document.getElementById("reader");
+  const minimapEl = document.getElementById("minimap");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const stopPosEl = document.getElementById("stopPos");
+  const progressEl = document.getElementById("progress");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const ERA_COUNT = STOPS.filter((s) => s.kind === "era").length;
+  const idToIndex = new Map(STOPS.map((s, i) => [s.id, i]));
 
-  /* ---------- render panels ---------- */
+  /* ---------- ledger rendering (unchanged content, same markup) ---------- */
 
   function ledgerValue(val) {
     if (typeof val === "string") return `<p class="ledger-a">${val}</p>`;
@@ -22,10 +39,9 @@
       <p class="ledger-a split"><span class="who">hers</span>${val.hers}</p>`;
   }
 
-  function eraPanel(s) {
+  function eraReaderHTML(s) {
     const act = ACTS[s.act];
     const isSplit = ["watches", "fenced", "theirs"].some((k) => typeof s.ledger[k] === "object");
-    const prop = PROPS[s.id] || { far: "", near: "" };
     const rows = [
       ["watches", "Who watches them?", ""],
       ["fenced", "What is fenced?", "fenced"],
@@ -36,64 +52,41 @@
         ${ledgerValue(s.ledger[key])}
       </div>`).join("");
 
+    const isFirstOfAct = s.num === Math.min(...STOPS
+      .filter((x) => x.act === s.act && x.kind === "era")
+      .map((x) => x.num));
+
     return `
-    <section class="panel era ${s.final ? "final" : ""}" id="${s.id}"
-             data-kind="era" data-num="${s.num}" data-act="${s.act}"
-             data-costume="${s.costume}" ${s.doubles ? 'data-doubles="1"' : ""}
-             aria-label="Stop ${s.num} of ${ERA_COUNT}: ${s.title}">
-      <div class="panel-text">
-        <div class="panel-act">Act ${act.numeral} — ${act.title} · Stop ${s.num} of ${ERA_COUNT}</div>
-        ${s.num === Math.min(...STOPS.filter((x) => x.act === s.act && x.kind === "era").map((x) => x.num))
-          ? `<p class="act-blurb">${act.blurb}</p>` : ""}
-        <div class="panel-date">${s.dateLabel}</div>
-        <h2 class="panel-title">${s.title}</h2>
-        <p class="panel-vignette">${s.vignette}</p>
-      </div>
-      <div class="ledger" role="group" aria-label="The ledger at this stop">
-        ${isSplit ? `<span class="split-mark">his · hers diverge</span>` : ""}
-        <div class="ledger-caption">The ledger — the same three questions, asked at every stop on the walk</div>
-        ${rows}
-        ${s.herLine ? `<p class="her-line"><b>Her line —</b> ${s.herLine}</p>` : ""}
-        ${s.anchors && s.anchors.length ? `
-        <details class="sources">
-          <summary>Sources</summary>
-          <ul>${s.anchors.map((a) => `<li>${a}</li>`).join("")}</ul>
-        </details>` : ""}
-      </div>
-      <div class="prop-layer far" aria-hidden="true">
-        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMax meet">${prop.far}</svg>
-      </div>
-      <div class="prop-layer near">
-        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMax meet" role="img"
-             aria-label="${s.propAlt || ""}">${prop.near}</svg>
-      </div>
-      ${s.final ? `<p class="final-question" aria-hidden="true">no ground line ahead of them</p>` : ""}
-      <div class="ground ${act.ground}"></div>
-    </section>`;
+      <div class="panel-content">
+        <div class="panel-text">
+          <div class="panel-act">Act ${act.numeral} — ${act.title} · Stop ${s.num} of ${ERA_COUNT}</div>
+          ${isFirstOfAct ? `<p class="act-blurb">${act.blurb}</p>` : ""}
+          <div class="panel-date">${s.dateLabel}</div>
+          <h2 class="panel-title">${s.title}</h2>
+          <p class="panel-vignette">${s.vignette}</p>
+        </div>
+        <div class="ledger" role="group" aria-label="The ledger at this stop">
+          ${isSplit ? `<span class="split-mark">his · hers diverge</span>` : ""}
+          <div class="ledger-caption">The ledger — the same three questions, asked at every stop on the walk</div>
+          ${rows}
+          ${s.herLine ? `<p class="her-line"><b>Her line —</b> ${s.herLine}</p>` : ""}
+          ${s.anchors && s.anchors.length ? `
+          <details class="sources">
+            <summary>Sources</summary>
+            <ul>${s.anchors.map((a) => `<li>${a}</li>`).join("")}</ul>
+          </details>` : ""}
+        </div>
+      </div>`;
   }
 
-  function corridorPanel(s) {
-    const ground = s.blend
-      ? `<div class="ground blend" aria-hidden="true">
-           <div class="g-a ${s.blend[0]}"></div>
-           <div class="g-b ${s.blend[1]}"></div>
-         </div>`
-      : `<div class="ground ${ACTS[s.act].ground}"></div>`;
+  function corridorReaderHTML(s) {
     return `
-    <section class="panel corridor" id="${s.id}" data-kind="transition" data-act="${s.act}"
-             aria-label="Transition: ${s.title}">
-      <div class="corridor-rails" aria-hidden="true"></div>
       <div class="corridor-inner">
         <div class="corridor-kicker">Transition${s.dateLabel ? " · " + s.dateLabel : ""}</div>
         <h2 class="corridor-title">${s.title}</h2>
         <p class="corridor-mechanism">${s.mechanism}</p>
-      </div>
-      ${ground}
-    </section>`;
+      </div>`;
   }
-
-  scroller.innerHTML = STOPS.map((s) => (s.kind === "era" ? eraPanel(s) : corridorPanel(s))).join("");
-  const panels = Array.from(scroller.querySelectorAll(".panel"));
 
   /* ---------- minimap ---------- */
 
@@ -117,184 +110,125 @@
 
   minimapEl.addEventListener("click", (e) => {
     const btn = e.target.closest(".mm-tick");
-    if (btn) scrollToPanel(document.getElementById(btn.dataset.target));
+    if (btn) goToId(btn.dataset.target, true);
   });
 
-  const progress = document.createElement("div");
-  progress.className = "progress";
-  document.body.appendChild(progress);
+  /* ---------- current-stop state ---------- */
 
-  /* ---------- figures ---------- */
+  let current = 0;
+  let currentCostume = null;
+  let walkTimer = null;
 
-  const figScale = window.innerWidth < 900 ? 0.6 : Math.min(0.95, window.innerHeight / 780);
-  Figures.mount(figuresEl, figScale);
-  Figures.dress(STOPS[0].costume);
-  Figures.pose(0, 0);
+  function renderStage(s) {
+    const act = ACTS[s.act];
+    const prop = PROPS[s.id] || { far: "", near: "" };
 
-  /* ---------- geometry cache ---------- */
+    propFar.innerHTML = `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMax meet">${prop.far || ""}</svg>`;
+    propNear.innerHTML = prop.near
+      ? `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMax meet" role="img" aria-label="${s.propAlt || ""}">${prop.near}</svg>`
+      : "";
 
-  let geo = [];
-  function cacheGeometry() {
-    geo = panels.map((p) => ({
-      el: p,
-      left: p.offsetLeft,
-      width: p.offsetWidth,
-      kind: p.dataset.kind,
-      far: p.querySelector(".prop-layer.far"),
-      near: p.querySelector(".prop-layer.near")
-    }));
-  }
-  cacheGeometry();
+    if (s.blend) {
+      groundEl.className = "ground blend";
+      groundEl.innerHTML = `<div class="g-a ${s.blend[0]}"></div><div class="g-b ${s.blend[1]}"></div>`;
+    } else {
+      const groundClass = s.kind === "era" ? act.ground : ACTS[s.act].ground;
+      groundEl.className = `ground ${groundClass}`;
+      groundEl.innerHTML = "";
+    }
 
-  /* ---------- scroll → walk ---------- */
+    stage.classList.toggle("final", !!s.final);
+    finalQuestionEl.hidden = !s.final;
 
-  let lastScroll = scroller.scrollLeft;
-  let phase = 0, amp = 0, lastMove = 0;
-  let currentEraId = null, currentCostume = STOPS[0].costume;
-  let swapTimer = null;
+    document.body.classList.toggle("doubles-active", !!s.doubles);
 
-  function anchorX() {
-    // the point of the timeline the couple is standing on
-    return scroller.scrollLeft + window.innerWidth * 0.15 + 130 * figScale;
-  }
-
-  function panelAt(x) {
-    for (const g of geo) if (x >= g.left && x < g.left + g.width) return g;
-    return geo[geo.length - 1];
-  }
-
-  function setActiveEra(g) {
-    const id = g.el.id;
-    if (id === currentEraId) return;
-    currentEraId = id;
-
-    panels.forEach((p) => p.removeAttribute("aria-current"));
-    g.el.setAttribute("aria-current", "true");
-    minimapEl.querySelectorAll(".mm-tick").forEach((t) =>
-      t.dataset.target === id ? t.setAttribute("aria-current", "true") : t.removeAttribute("aria-current"));
-
-    history.replaceState(null, "", "#" + id);
-    document.body.classList.toggle("doubles-active", !!g.el.dataset.doubles);
-
-    const costume = g.el.dataset.costume;
+    const costume = s.costume || currentCostume;
     if (costume && costume !== currentCostume) {
       currentCostume = costume;
-      if (reduceMotion) {
-        Figures.dress(costume);
+      Figures.dress(costume);
+    }
+  }
+
+  function renderReader(s) {
+    reader.innerHTML = s.kind === "era" ? eraReaderHTML(s) : corridorReaderHTML(s);
+    reader.scrollTop = 0;
+    stage.classList.remove("scrolled-deep");
+    reader.dataset.kind = s.kind;
+  }
+
+  function updateChrome(s, index) {
+    history.replaceState(null, "", "#" + s.id);
+    minimapEl.querySelectorAll(".mm-tick").forEach((t) =>
+      t.dataset.target === s.id ? t.setAttribute("aria-current", "true") : t.removeAttribute("aria-current"));
+
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === STOPS.length - 1;
+    const eraNum = s.kind === "era" ? s.num : null;
+    stopPosEl.textContent = eraNum ? `Stop ${eraNum} of ${ERA_COUNT}` : "Transition";
+    progressEl.style.width = `${(index / (STOPS.length - 1)) * 100}%`;
+  }
+
+  function playWalkBurst() {
+    if (reduceMotion) { Figures.pose(0, 0); return; }
+    cancelAnimationFrame(walkTimer);
+    const start = performance.now();
+    const duration = 520;
+    function step(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const amp = Math.sin(t * Math.PI); // ramps up then back down to 0
+      Figures.pose(t * 6, amp);
+      if (t < 1) {
+        walkTimer = requestAnimationFrame(step);
       } else {
-        clearTimeout(swapTimer);
-        figuresEl.classList.add("swapping");
-        swapTimer = setTimeout(() => {
-          Figures.dress(costume);
-          figuresEl.classList.remove("swapping");
-        }, 220);
+        Figures.pose(0, 0);
       }
     }
+    walkTimer = requestAnimationFrame(step);
   }
 
-  function applyParallax() {
-    if (reduceMotion) return;
-    const center = scroller.scrollLeft + window.innerWidth / 2;
-    const vw = window.innerWidth;
-    for (const g of geo) {
-      if (!g.far && !g.near) continue;
-      const dist = g.left + g.width / 2 - center;
-      if (Math.abs(dist) > vw * 1.2) continue;
-      if (g.far) g.far.style.transform = `translateX(${(-0.6 * dist).toFixed(1)}px)`;
-      if (g.near) g.near.style.transform = `translateX(${(-0.2 * dist).toFixed(1)}px)`;
-    }
+  function goTo(index, { animate = true, focusReader = false } = {}) {
+    index = Math.max(0, Math.min(STOPS.length - 1, index));
+    const s = STOPS[index];
+    current = index;
+    renderStage(s);
+    renderReader(s);
+    updateChrome(s, index);
+    if (animate) playWalkBurst();
+    if (focusReader) reader.focus({ preventScroll: true });
   }
 
-  function frame(now) {
-    const x = scroller.scrollLeft;
-    const v = x - lastScroll;
-    lastScroll = x;
-
-    const active = panelAt(anchorX());
-    if (active.kind === "era") setActiveEra(active);
-    const cadence = active.kind === "transition" ? 1.6 : 1;
-
-    if (!reduceMotion) {
-      if (v !== 0) {
-        phase += v * 0.05 * cadence;
-        lastMove = now;
-      }
-      const target = now - lastMove < 140 ? 1 : 0;
-      amp += (target - amp) * 0.12;
-      if (amp < 0.015) amp = 0;
-      Figures.pose(phase, amp);
-      applyParallax();
-    }
-
-    // progress + hint
-    const max = scroller.scrollWidth - scroller.clientWidth;
-    progress.style.width = (max ? (x / max) * 100 : 0) + "%";
-    if (x > 80) hintEl.classList.add("gone");
-
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-
-  /* ---------- wheel: vertical intent becomes horizontal travel,
-     unless the pointer is over a panel's own scrollable text/ledger
-     column that still has room left to scroll — then let that
-     column absorb the gesture first (trackpad/touch/wheel alike) ---------- */
-
-  function scrollableAncestor(node) {
-    while (node && node !== scroller) {
-      if (node.classList && (node.classList.contains("panel-text") ||
-                              node.classList.contains("ledger") ||
-                              node.classList.contains("corridor-inner"))) {
-        return node;
-      }
-      node = node.parentElement;
-    }
-    return null;
+  function goToId(id, animate) {
+    const idx = idToIndex.get(id);
+    if (idx !== undefined) goTo(idx, { animate });
   }
 
-  scroller.addEventListener("wheel", (e) => {
-    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  /* ---------- nav controls ---------- */
 
-    const inner = scrollableAncestor(e.target);
-    if (inner) {
-      const atTop = e.deltaY < 0 && inner.scrollTop <= 0;
-      const atBottom = e.deltaY > 0 && inner.scrollTop + inner.clientHeight >= inner.scrollHeight - 1;
-      if (!atTop && !atBottom) return; // let the column scroll natively
-    }
-
-    scroller.scrollLeft += e.deltaY;
-    e.preventDefault();
-  }, { passive: false });
-
-  /* ---------- keyboard ---------- */
-
-  function scrollToPanel(el, smooth = !reduceMotion) {
-    const left = el.offsetLeft + el.offsetWidth / 2 - window.innerWidth / 2;
-    scroller.scrollTo({ left, behavior: smooth ? "smooth" : "auto" });
-  }
+  prevBtn.addEventListener("click", () => goTo(current - 1, { focusReader: true }));
+  nextBtn.addEventListener("click", () => goTo(current + 1, { focusReader: true }));
 
   window.addEventListener("keydown", (e) => {
     if (e.altKey || e.metaKey || e.ctrlKey) return;
-    if (["ArrowRight", "ArrowLeft", "Home", "End"].indexOf(e.key) === -1) return;
-    e.preventDefault();
-    const x = anchorX();
-    let idx = geo.indexOf(panelAt(x));
-    if (e.key === "ArrowRight") idx = Math.min(idx + 1, geo.length - 1);
-    if (e.key === "ArrowLeft") idx = Math.max(idx - 1, 0);
-    if (e.key === "Home") idx = 0;
-    if (e.key === "End") idx = geo.length - 1;
-    scrollToPanel(geo[idx].el);
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    if (e.key === "ArrowRight") { e.preventDefault(); goTo(current + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); goTo(current - 1); }
+    else if (e.key === "Home") { e.preventDefault(); goTo(0); }
+    else if (e.key === "End") { e.preventDefault(); goTo(STOPS.length - 1); }
   });
+
+  /* ---------- reader scroll: blur the background once the reader
+     has scrolled down roughly a screen's worth into a long stop.
+     At rest (top of any stop) the background stays sharp. ---------- */
+
+  const BLUR_THRESHOLD = 120;
+  reader.addEventListener("scroll", () => {
+    stage.classList.toggle("scrolled-deep", reader.scrollTop > BLUR_THRESHOLD);
+  }, { passive: true });
 
   /* ---------- deep links ---------- */
 
-  function jumpToHash(smooth) {
-    const id = location.hash.slice(1);
-    if (!id) return;
-    const el = document.getElementById(id);
-    if (el && el.classList.contains("panel")) scrollToPanel(el, smooth);
-  }
-  window.addEventListener("hashchange", () => jumpToHash(true));
+  window.addEventListener("hashchange", () => goToId(location.hash.slice(1), false));
 
   /* ---------- theme ---------- */
 
@@ -311,23 +245,26 @@
     if (localStorage.getItem("mt-theme") === "dark") setTheme(true);
   } catch (_) {}
 
-  /* ---------- resize ---------- */
+  /* ---------- figures ---------- */
+
+  const figScale = window.innerWidth < 900 ? 0.68 : Math.min(0.95, window.innerHeight / 780);
+  Figures.mount(figuresEl, figScale);
 
   let resizeTimer = null;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      cacheGeometry();
-      const s = window.innerWidth < 900 ? 0.6 : Math.min(0.95, window.innerHeight / 780);
+      const s = window.innerWidth < 900 ? 0.68 : Math.min(0.95, window.innerHeight / 780);
       figuresEl.innerHTML = "";
       Figures.mount(figuresEl, s);
-      Figures.dress(currentCostume);
-      Figures.pose(phase, 0);
+      if (currentCostume) Figures.dress(currentCostume);
+      Figures.pose(0, 0);
     }, 180);
   });
 
   /* ---------- go ---------- */
 
-  scroller.focus({ preventScroll: true });
-  requestAnimationFrame(() => jumpToHash(false));
+  const startId = location.hash.slice(1);
+  const startIndex = idToIndex.has(startId) ? idToIndex.get(startId) : 0;
+  goTo(startIndex, { animate: false });
 })();

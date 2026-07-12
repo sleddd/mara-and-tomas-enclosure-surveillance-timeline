@@ -25,15 +25,40 @@
   </div>
 </header>
 
-<main id="scroller" class="scroller" tabindex="0" aria-label="Horizontal timeline. Use left and right arrow keys to move between stops.">
-  <!-- panels injected by app.js -->
-</main>
-
-<div class="figures-layer" aria-hidden="true">
-  <div class="figures" id="figures"></div>
+<!-- Fixed background stage: ground texture, prop art, and the walking
+     figures for whichever stop is current. Never scrolls; contents are
+     swapped by app.js when the current stop changes. Sits behind the
+     text panel (lower z-index). -->
+<div class="stage" id="stage" aria-hidden="true">
+  <div class="prop-layer far" id="propFar"></div>
+  <div class="prop-layer near" id="propNear"></div>
+  <p class="final-question" id="finalQuestion" hidden>no ground line ahead of them</p>
+  <div class="ground" id="ground"></div>
+  <div class="figures-layer">
+    <div class="figures" id="figures"></div>
+  </div>
 </div>
 
-<div class="hint" id="hint" aria-hidden="true">scroll&nbsp;→</div>
+<!-- The one scrollable element: the current stop's story text and
+     ledger. Fixed to the viewport (not part of the stage), so reading
+     a long stop never moves the background behind it. -->
+<main class="reader" id="reader" tabindex="0" aria-live="polite">
+  <!-- current stop injected by app.js -->
+</main>
+
+<nav class="stop-nav" aria-label="Move between stops">
+  <button id="prevBtn" class="nav-btn" type="button" aria-label="Previous stop">
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4 6 10l6.5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Previous</span>
+  </button>
+  <span class="stop-nav-pos" id="stopPos" aria-hidden="true"></span>
+  <button id="nextBtn" class="nav-btn" type="button" aria-label="Next stop">
+    <span>Next</span>
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4 14 10l-6.5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</nav>
+
+<div class="progress" id="progress"></div>
 
 <script src="js/data.js"></script>
 <script src="js/props.js"></script>
