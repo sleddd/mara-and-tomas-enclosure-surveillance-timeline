@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mara and Tomas — ten thousand years of watching</title>
+<meta name="description" content="A walk through ten thousand years of watching: who watches, what is fenced, what is theirs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar" role="navigation" aria-label="Timeline overview">
+  <div class="brand">
+    <span class="brand-title">Mara <span class="amp">&amp;</span> Tomas</span>
+    <span class="brand-sub">ten thousand years of watching</span>
+  </div>
+  <nav class="minimap" id="minimap" aria-label="Stops"></nav>
+  <div class="topbar-tools">
+    <button id="themeToggle" class="tool-btn" aria-pressed="false" title="Switch to dark variant">
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M13.6 11.2A6 6 0 0 1 8 3.1 7 7 0 1 0 16.9 12a6 6 0 0 1-3.3-.8z" fill="currentColor"/></svg>
+      <span class="tool-label">Dark</span>
+    </button>
+  </div>
+</header>
+
+<main id="scroller" class="scroller" tabindex="0" aria-label="Horizontal timeline. Use left and right arrow keys to move between stops.">
+  <!-- panels injected by app.js -->
+</main>
+
+<div class="figures-layer" aria-hidden="true">
+  <div class="figures" id="figures"></div>
+</div>
+
+<div class="hint" id="hint" aria-hidden="true">scroll&nbsp;→</div>
+
+<script src="js/data.js"></script>
+<script src="js/props.js"></script>
+<script src="js/figures.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+/* ============================================================
+   Mara & Tomas — ten thousand years of watching
+   Palette grounded in the subject's materials.
+   ============================================================ */
+
+:root {
+  --parchment: #EFE7D6;
+  --parchment-deep: #E4D9C2;
+  --clay: #A9744F;
+  --iron: #3A3A38;
+  --iron-soft: #5C5A54;
+  --indigo: #2B3A67;
+  --wheat: #C9A24B;
+  --register-red: #8C2F2F;
+
+  --bg: var(--parchment);
+  --bg-panel: transparent;
+  --ink: var(--iron);
+  --ink-soft: var(--iron-soft);
+  --accent: var(--indigo);
+  --line: rgba(58, 58, 56, 0.25);
+  --card: rgba(255, 252, 244, 0.72);
+  --corridor-bg: #E3D8C0;
+  --corridor-ink: #4A463D;
+  --glow: #9fb4e8;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --sans: "Lato", "Open Sans", "Segoe UI", system-ui, sans-serif;
+
+  --topbar-h: 66px;
+  --ground-h: 78px;
+  --era-w: 100vw;
+  --corridor-w: max(46vw, 420px);
+}
+
+html[data-theme="dark"] {
+  --bg: #23221F;
+  --bg-panel: transparent;
+  --ink: #E8DFC9;
+  --ink-soft: #B7AE97;
+  --accent: #93A7DC;
+  --line: rgba(232, 223, 201, 0.25);
+  --card: rgba(38, 37, 33, 0.78);
+  --corridor-bg: #1B1A18;
+  --corridor-ink: #CFC5A9;
+  --register-red: #C86B5F;
+  --wheat: #D6B36A;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* ---------- top bar / minimap ---------- */
+
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+  z-index: 40;
+}
+
+.brand { display: flex; flex-direction: column; line-height: 1.15; min-width: 130px; }
+.brand-title { font-family: var(--serif); font-size: 17px; letter-spacing: 0.01em; }
+.brand-title .amp { color: var(--clay); }
+.brand-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); }
+
+.minimap {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 44px;
+  position: relative;
+  max-width: 900px;
+}
+
+.mm-act {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 5px;
+  border-left: 1px solid var(--line);
+}
+.mm-act:first-child { border-left: none; }
+
+.mm-ticks { display: flex; gap: 3px; align-items: flex-end; position: relative; }
+
+.mm-tick {
+  appearance: none;
+  border: none;
+  width: 9px;
+  height: 16px;
+  padding: 0;
+  background: var(--line);
+  border-radius: 1px;
+  cursor: pointer;
+  position: relative;
+}
+.mm-tick.theirs { background: var(--wheat); box-shadow: 0 0 6px color-mix(in srgb, var(--wheat) 70%, transparent); }
+.mm-tick[aria-current="true"] { background: var(--register-red); height: 22px; }
+.mm-tick:hover { background: var(--clay); }
+.mm-tick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.mm-label {
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 110px;
+  text-overflow: ellipsis;
+}
+
+.mm-band-legend {
+  position: absolute;
+  right: 0;
+  top: -2px;
+  font-size: 8.5px;
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mm-band-legend i {
+  display: inline-block; width: 8px; height: 8px; border-radius: 1px;
+  background: var(--wheat); margin-right: 4px; vertical-align: -1px; font-style: normal;
+}
+
+.topbar-tools { display: flex; align-items: center; }
+.tool-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--sans); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--ink); background: transparent;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 12px; cursor: pointer;
+}
+.tool-btn:hover { border-color: var(--ink-soft); }
+.tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- scroller & panels ---------- */
+
+.scroller {
+  position: absolute;
+  inset: var(--topbar-h) 0 0 0;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--clay) transparent;
+}
+.scroller:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+.panel {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  overflow: hidden;
+}
+
+.panel.era {
+  width: var(--era-w);
+  scroll-snap-align: center;
+}
+
+.panel.corridor {
+  width: var(--corridor-w);
+  background: var(--corridor-bg);
+  color: var(--corridor-ink);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+
+/* text block — bounded between the topbar and the ground line;
+   scrolls internally (trackpad/touch/wheel all work — see .panel-text
+   in app.js's wheel handler) rather than overlapping the prop art below it */
+.panel-text {
+  position: relative;
+  z-index: 3;
+  height: calc(100% - var(--ground-h));
+  max-height: calc(100% - var(--ground-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--clay) transparent;
+  padding: 34px 24px 28px 7vw;
+  /* scales continuously with viewport width — no seam at any
+     breakpoint, unlike a min(px, vw) pair tuned for two fixed sizes */
+  width: clamp(280px, 46vw, 560px);
+  box-sizing: border-box;
+}
+.panel-act {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--clay);
+  margin-bottom: 10px;
+}
+.act-blurb {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 30rem;
+  margin: 2px 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-date {
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.panel-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(30px, 4.4vw, 52px);
+  line-height: 1.04;
+  margin-bottom: 16px;
+}
+.panel-vignette {
+  font-family: var(--serif);
+  font-size: clamp(15px, 1.35vw, 18px);
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* the registry ledger — identical at every stop */
+.ledger {
+  position: absolute;
+  z-index: 4;
+  top: 34px;
+  right: 5vw;
+  width: clamp(240px, 38vw, 480px);
+  max-height: calc(100vh - var(--topbar-h) - var(--ground-h) - 70px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--iron);
+  padding: 14px 18px 10px;
+}
+html[data-theme="dark"] .ledger { border-top-color: var(--ink); }
+
+.ledger-caption {
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.ledger-row { padding: 8px 0 9px; border-top: 1px dotted var(--line); }
+.ledger-q {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 4px;
+}
+.ledger-row.fenced .ledger-q { color: var(--register-red); }
+.ledger-a {
+  margin: 0;
+  color: var(--ink);
+}
+.ledger-a + .ledger-a { margin-top: 6px; }
+.ledger-a .who {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--clay);
+  border-radius: 2px;
+  padding: 0 5px;
+  margin-right: 6px;
+  color: var(--clay);
+  vertical-align: 1px;
+}
+.split-mark {
+  position: absolute;
+  top: -3px;
+  left: -1px;
+  transform: translateY(-100%);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--register-red);
+  background: var(--card);
+  border: 1px solid var(--register-red);
+  border-radius: 2px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
+
+.her-line {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.her-line b { color: var(--clay); font-weight: 600; letter-spacing: 0.06em; }
+
+.sources { margin-top: 10px; font-family: var(--sans); }
+.sources summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.sources summary::-webkit-details-marker { display: none; }
+.sources summary::before { content: "▸ "; }
+.sources[open] summary::before { content: "▾ "; }
+.sources summary:hover { color: var(--ink); }
+.sources ul { margin: 6px 0 2px 12px; font-size: 11px; line-height: 1.45; color: var(--ink-soft); }
+
+/* corridors */
+.corridor-inner {
+  position: relative;
+  z-index: 3;
+  height: calc(100% - var(--ground-h));
+  max-height: calc(100% - var(--ground-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--clay) transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px clamp(20px, 4vw, 56px);
+}
+.corridor-kicker {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--clay);
+  margin-bottom: 10px;
+}
+.corridor-title {
+  font-family: var(--serif);
+  font-size: clamp(22px, 2.2vw, 30px);
+  margin-bottom: 12px;
+}
+.corridor-mechanism {
+  font-family: var(--serif);
+  font-size: clamp(14px, 1.15vw, 16px);
+  line-height: 1.62;
+  max-width: 34rem;
+}
+.corridor-mechanism::first-letter { color: var(--clay); }
+.corridor-rails {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.14), transparent 14%, transparent 86%, rgba(0,0,0,0.14));
+}
+
+/* ---------- props / parallax layers ---------- */
+
+.prop-layer {
+  position: absolute;
+  bottom: var(--ground-h);
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--ground-h));
+  pointer-events: none;
+}
+.prop-layer svg {
+  position: absolute;
+  bottom: 0;
+  right: 4vw;
+  height: min(62vh, 520px);
+  width: auto;
+  max-width: 88vw;
+  overflow: visible;
+}
+.prop-layer.far { z-index: 1; opacity: 0.9; }
+.prop-layer.near { z-index: 2; }
+
+.prop-layer .s-iron { fill: var(--iron); }
+.prop-layer .s-clay { fill: var(--clay); }
+.prop-layer .s-wheat { fill: var(--wheat); }
+.prop-layer .s-indigo { fill: var(--indigo); }
+.prop-layer .s-paper { fill: var(--parchment); }
+.prop-layer .s-red { fill: var(--register-red); }
+.prop-layer .s-glow { fill: var(--glow); }
+.prop-layer .s-faint { fill: var(--iron); opacity: 0.35; }
+html[data-theme="dark"] .prop-layer .s-iron { fill: #CFC5A9; }
+html[data-theme="dark"] .prop-layer .s-paper { fill: #23221F; }
+html[data-theme="dark"] .prop-layer .s-faint { fill: #CFC5A9; opacity: 0.3; }
+html[data-theme="dark"] .prop-layer .s-indigo { fill: #7E93CD; }
+
+/* ---------- the ground line (signature element) ---------- */
+
+.ground {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--ground-h);
+  z-index: 2;
+}
+.ground::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--iron);
+  opacity: 0.85;
+}
+html[data-theme="dark"] .ground::before { background: #CFC5A9; }
+
+/* Act I — bare earth */
+.g-earth {
+  background:
+    radial-gradient(3px 2px at 12% 30%, rgba(58,58,56,0.4) 98%, transparent),
+    radial-gradient(2px 2px at 34% 62%, rgba(58,58,56,0.32) 98%, transparent),
+    radial-gradient(3px 2px at 57% 40%, rgba(58,58,56,0.36) 98%, transparent),
+    radial-gradient(2px 2px at 81% 70%, rgba(58,58,56,0.3) 98%, transparent),
+    linear-gradient(180deg, #B99C71, #A98B62);
+  background-size: 230px 100%, 190px 100%, 260px 100%, 210px 100%, 100% 100%;
+}
+
+/* Act II — the furrow */
+.g-furrow {
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(58,40,26,0.5) 0 7px,
+      transparent 7px 30px),
+    linear-gradient(180deg, #A9744F, #8F5F41);
+}
+
+/* Act III — paving stones */
+.g-paving {
+  background:
+    repeating-linear-gradient(90deg, rgba(40,40,38,0.55) 0 2px, transparent 2px 64px),
+    repeating-linear-gradient(180deg, rgba(40,40,38,0.45) 0 2px, transparent 2px 26px),
+    linear-gradient(180deg, #9A948A, #837D72);
+}
+
+/* Act IV — mill floorboards */
+.g-boards {
+  background:
+    repeating-linear-gradient(90deg, rgba(46,32,20,0.6) 0 2px, transparent 2px 96px),
+    linear-gradient(180deg, rgba(0,0,0,0.12), transparent 40%),
+    linear-gradient(180deg, #8C6B47, #77573A);
+}
+
+/* Act V — asphalt */
+.g-asphalt {
+  background:
+    radial-gradient(2px 2px at 22% 42%, rgba(255,255,255,0.12) 98%, transparent),
+    radial-gradient(2px 2px at 68% 68%, rgba(255,255,255,0.09) 98%, transparent),
+    linear-gradient(180deg, #4A4A47, #3A3A38);
+  background-size: 170px 100%, 210px 100%, 100% 100%;
+}
+
+/* Act VI — backlit glass */
+.g-glass {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.28) 0 2px, transparent 2px 120px),
+    linear-gradient(180deg, #B9C6E8 0%, #8FA3D6 45%, #5C6E9E 100%);
+  box-shadow: 0 -10px 30px rgba(143, 163, 214, 0.5);
+}
+html[data-theme="dark"] .g-glass {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 2px, transparent 2px 120px),
+    linear-gradient(180deg, #5C6E9E 0%, #3D4B75 60%, #262E4A 100%);
+  box-shadow: 0 -12px 36px rgba(94, 116, 178, 0.55);
+}
+
+/* blended ground for corridors that cross an act boundary */
+.ground.blend .g-a, .ground.blend .g-b {
+  position: absolute; inset: 0;
+}
+.ground.blend .g-b {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 85%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 85%);
+}
+.ground.blend { background: none; }
+.ground.blend > div::before { display: none; }
+
+/* the ground stops before the edge of the last panel */
+.panel.final .ground { width: 58%; }
+.panel.final .ground::after {
+  content: "";
+  position: absolute;
+  right: -1px; top: 0; bottom: 0;
+  width: 90px;
+  background: linear-gradient(90deg, transparent, var(--bg));
+  transform: translateX(100%);
+}
+
+/* ---------- the walking figures ---------- */
+
+.figures-layer {
+  position: fixed;
+  left: 0;
+  bottom: var(--ground-h);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.figures {
+  position: absolute;
+  bottom: 0;
+  left: 15vw;
+  display: flex;
+  align-items: flex-end;
+  transition: opacity 0.22s ease;
+}
+.figures.swapping { opacity: 0; }
+
+.figures svg { display: block; overflow: visible; }
+.fig-shadow {
+  transition: transform 0.6s ease, opacity 0.6s ease;
+  transform-origin: 60px 222px;
+}
+body.doubles-active .fig-shadow {
+  transform: translateX(26px) skewX(-24deg) scaleX(1.35);
+  opacity: 0.55;
+}
+
+/* ---------- hint ---------- */
+.hint {
+  position: fixed;
+  right: 22px;
+  bottom: calc(var(--ground-h) + 14px);
+  z-index: 30;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: 999px;
+  opacity: 0.9;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.hint.gone { opacity: 0; }
+
+/* ---------- final panel ---------- */
+.panel.final .panel-vignette { max-width: 32rem; }
+.final-question {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(var(--ground-h) + 40px);
+  left: 62%;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-soft);
+  max-width: 220px;
+}
+
+/* ---------- responsive ---------- */
+
+/* Between roughly phone width and ~1180px, the two-column layout
+   (story column + floating ledger) no longer has room for either
+   to hold a readable line length. Stack them in normal document
+   flow instead — same treatment as the phone breakpoint below,
+   just triggered earlier. */
+/* Column widths above already scale continuously via clamp() —
+   no seam to patch here. Below ~1180px, just tighten padding,
+   shrink type slightly, and dim the props so they don't compete
+   with the now-narrower text columns. Each column keeps its own
+   internal scroll (set on .panel-text / .ledger) as the safety
+   valve for any stop whose copy still runs long. */
+@media (max-width: 1180px) {
+  .panel-text { padding-right: 18px; }
+  .panel-vignette { font-size: clamp(14px, 1.5vw, 16.5px); line-height: 1.5; }
+  .ledger { font-size: 12px; }
+  .prop-layer svg { opacity: 0.55; height: min(52vh, 460px); }
+}
+
+@media (max-width: 900px) {
+  :root { --ground-h: 64px; --corridor-w: 78vw; }
+  .minimap { display: none; }
+  .topbar { justify-content: space-between; }
+  .panel-text {
+    height: auto;
+    max-height: none;
+    overflow-y: visible;
+    padding: 22px 6vw 0;
+    max-width: none;
+  }
+  .panel-title { font-size: clamp(26px, 7vw, 34px); }
+  .ledger {
+    position: relative;
+    top: auto; right: auto;
+    width: auto;
+    max-height: none;
+    overflow-y: visible;
+    margin: 18px 6vw 0;
+    font-size: 11.5px;
+  }
+  .prop-layer svg { height: 34vh; right: 2vw; opacity: 0.55; }
+  .figures { left: 8vw; }
+  .final-question { left: 8vw; max-width: 70vw; }
+}
+
+/* mobile progress bar replaces minimap */
+.progress {
+  display: none;
+}
+@media (max-width: 900px) {
+  .progress {
+    display: block;
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0;
+    height: 3px;
+    background: var(--register-red);
+    z-index: 41;
+    width: 0;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .scroller { scroll-behavior: auto !important; }
+  .figures { transition: none; }
+  .fig-shadow { transition: none; }
+}
+
+/* screen-reader helper */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  clip: rect(0 0 0 0); clip-path: inset(50%);
+  overflow: hidden; white-space: nowrap;
+}
