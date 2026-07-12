@@ -5,3 +5,5 @@ This project was built as a research timeline to help visually illustrate and wo
 [https://mara-and-tomas-enclosure-surveillance.onrender.com](https://mara-and-tomas-enclosure-surveillance.onrender.com/#the-band)
 
 <img width="1462" height="637" alt="Screenshot 2026-07-12 at 4 21 11 PM" src="https://github.com/user-attachments/assets/e7b3f087-ec80-42c1-8baa-e273d8270567" />
+
+copyright 2026 all rights reserved Claudette Raynor
