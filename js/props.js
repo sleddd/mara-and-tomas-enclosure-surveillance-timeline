@@ -507,6 +507,27 @@ const PROPS = {
       </g>`
   },
 
+  "behavioral-surplus": {
+    far: `
+      <g class="s-faint">
+        <rect x="60" y="90" width="200" height="140" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="60" y="90" width="200" height="20" rx="4"/>
+        <circle cx="72" cy="100" r="3"/><circle cx="84" cy="100" r="3"/><circle cx="96" cy="100" r="3"/>
+        <rect x="76" y="130" width="168" height="14" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      </g>`,
+    near: `
+      <g transform="translate(200,0)">
+        <circle class="s-wheat" cx="0" cy="150" r="16" opacity="0.9"/>
+        <path class="s-iron" d="M-6,144 a2,2 0 1 1 0.1,0 Z" opacity="0.5"/>
+        <path class="s-iron" d="M5,146 a1.6,1.6 0 1 1 0.1,0 Z" opacity="0.5"/>
+        <path class="s-iron" d="M-2,156 a1.8,1.8 0 1 1 0.1,0 Z" opacity="0.5"/>
+        <path class="s-glow" d="M20,158 C40,158 44,172 62,172" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle class="s-glow" cx="62" cy="172" r="3.5"/>
+        <path class="s-glow" d="M20,158 C50,140 70,190 100,180" fill="none" stroke="currentColor" stroke-width="2" opacity="0.7"/>
+        <circle class="s-glow" cx="100" cy="180" r="3" opacity="0.7"/>
+      </g>`
+  },
+
   "the-exhibition": {
     far: (() => {
       let heads = "";
