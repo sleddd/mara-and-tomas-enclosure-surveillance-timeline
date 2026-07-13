@@ -787,6 +787,26 @@ const PROPS = {
       </g>`
   },
 
+  "the-model-learns": {
+    far: `
+      <g class="s-faint">
+        <circle cx="120" cy="100" r="3"/><circle cx="160" cy="80" r="3"/><circle cx="160" cy="130" r="3"/>
+        <circle cx="200" cy="60" r="3"/><circle cx="200" cy="100" r="3"/><circle cx="200" cy="140" r="3"/>
+        <circle cx="240" cy="90" r="3"/><circle cx="240" cy="130" r="3"/>
+        <path d="M120,100 L160,80 M120,100 L160,130 M160,80 L200,60 M160,80 L200,100 M160,130 L200,100 M160,130 L200,140 M200,60 L240,90 M200,100 L240,90 M200,100 L240,130 M200,140 L240,130" stroke="currentColor" stroke-width="1" fill="none"/>
+      </g>`,
+    near: `
+      <g transform="translate(180,0)">
+        <rect class="s-paper" x="-70" y="150" width="140" height="90" rx="2"/>
+        <g class="s-iron" opacity="0.7">
+          <rect x="-58" y="164" width="110" height="3"/><rect x="-58" y="176" width="94" height="3"/>
+          <rect x="-58" y="188" width="116" height="3"/><rect x="-58" y="200" width="70" height="3"/>
+          <rect x="-58" y="212" width="100" height="3"/>
+        </g>
+        <circle class="s-glow" cx="52" cy="150" r="10" opacity="0.85"/>
+      </g>`
+  },
+
   "the-open-question": {
     far: `
       <g class="s-faint">
