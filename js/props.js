@@ -294,6 +294,69 @@ const PROPS = {
       </g>`
   },
 
+  "natural-rights": {
+    far: `
+      <g class="s-faint">
+        <rect x="60" y="60" width="280" height="4"/>
+        <rect x="200" y="60" width="4" height="120"/>
+      </g>`,
+    near: `
+      <g transform="translate(150,0)">
+        <rect class="s-paper" x="-60" y="150" width="120" height="90" rx="2"/>
+        <g class="s-iron" opacity="0.6">
+          <rect x="-46" y="164" width="92" height="2.4"/><rect x="-46" y="176" width="92" height="2.4"/>
+          <rect x="-46" y="188" width="70" height="2.4"/><rect x="-46" y="200" width="92" height="2.4"/>
+          <rect x="-46" y="212" width="60" height="2.4"/>
+        </g>
+        <path class="s-iron" d="M64,150 L64,246" stroke="currentColor" stroke-width="3" fill="none"/>
+        <path class="s-iron" d="M60,150 L74,142 L80,150 L74,158 Z"/>
+      </g>
+      <g transform="translate(300,0)">
+        <rect class="s-iron" x="-6" y="140" width="12" height="120"/>
+        <path class="s-iron" d="M-40,140 L46,140 L46,150 L-40,150 Z"/>
+        <path class="s-faint" d="M-40,260 L-40,150 M46,260 L46,150" stroke="currentColor" stroke-width="2"/>
+      </g>`
+  },
+
+  "telephone-metadata": {
+    far: `
+      <g class="s-faint">
+        <path d="M60,260 L60,120 L340,120 L340,260" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="90" y="140" width="1.5" height="120"/><rect x="150" y="140" width="1.5" height="120"/>
+        <rect x="210" y="140" width="1.5" height="120"/><rect x="270" y="140" width="1.5" height="120"/>
+      </g>`,
+    near: `
+      <g transform="translate(180,0)">
+        <rect class="s-iron" x="-40" y="176" width="80" height="60" rx="3"/>
+        <g class="s-paper" opacity="0.9">
+          <circle cx="-24" cy="192" r="5"/><circle cx="-6" cy="192" r="5"/><circle cx="12" cy="192" r="5"/>
+          <circle cx="-24" cy="208" r="5"/><circle cx="-6" cy="208" r="5"/><circle cx="12" cy="208" r="5"/>
+        </g>
+        <path class="s-iron" d="M-40,176 L-52,160 L-40,164 Z"/>
+        <rect class="s-paper" x="26" y="180" width="26" height="34" opacity="0.85"/>
+        <g class="s-iron" opacity="0.5">
+          <rect x="30" y="186" width="18" height="2"/><rect x="30" y="192" width="18" height="2"/>
+          <rect x="30" y="198" width="12" height="2"/>
+        </g>
+      </g>`
+  },
+
+  "jus-algoritmi": {
+    far: `
+      <g class="s-faint">
+        <rect x="70" y="90" width="120" height="150" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="80" y="110" width="100" height="2"/><rect x="80" y="130" width="100" height="2"/>
+        <rect x="80" y="150" width="70" height="2"/><rect x="80" y="170" width="100" height="2"/>
+      </g>`,
+    near: `
+      <g transform="translate(240,0)">
+        <rect class="s-iron" x="-60" y="130" width="120" height="90" rx="3"/>
+        <rect class="s-glow" x="-52" y="138" width="104" height="60" rx="2" opacity="0.7"/>
+        <path class="s-iron" d="M-30,148 L10,148 M-30,160 L30,160 M-30,172 L0,172 M-30,184 L20,184" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/>
+        <circle class="s-red" cx="40" cy="150" r="4"/>
+      </g>`
+  },
+
   "the-mill": {
     far: `
       <g class="s-iron">
