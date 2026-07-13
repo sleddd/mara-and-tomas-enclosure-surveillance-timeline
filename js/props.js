@@ -538,6 +538,31 @@ const PROPS = {
       </g>`
   },
 
+  "the-doppel-lab": {
+    far: `
+      <g class="s-faint">
+        <rect x="90" y="80" width="220" height="180" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="90" y="120" width="220" height="1.5"/><rect x="90" y="160" width="220" height="1.5"/>
+        <rect x="90" y="200" width="220" height="1.5"/>
+        <rect x="130" y="80" width="1.5" height="180"/><rect x="170" y="80" width="1.5" height="180"/>
+        <rect x="210" y="80" width="1.5" height="180"/><rect x="250" y="80" width="1.5" height="180"/>
+        <path d="M90,80 L200,50 L310,80" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      </g>`,
+    near: `
+      <g>
+        <circle class="s-glow" cx="150" cy="108" r="5" opacity="0.9"/>
+        <circle class="s-glow" cx="230" cy="140" r="4" opacity="0.75"/>
+        <circle class="s-glow" cx="180" cy="180" r="6" opacity="0.85"/>
+        <circle class="s-glow" cx="270" cy="210" r="4" opacity="0.7"/>
+        <circle class="s-glow" cx="120" cy="220" r="4.5" opacity="0.8"/>
+        <circle class="s-wheat" cx="200" cy="150" r="3" opacity="0.9"/>
+        <g transform="translate(200,254)">
+          <rect class="s-iron" x="-18" y="-18" width="36" height="18" rx="2"/>
+          <rect class="s-glow" x="-14" y="-14" width="28" height="10" rx="1" opacity="0.6"/>
+        </g>
+      </g>`
+  },
+
   "the-cubicle": {
     far: `
       <g class="s-faint">
