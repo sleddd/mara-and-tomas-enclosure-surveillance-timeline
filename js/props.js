@@ -318,7 +318,33 @@ const PROPS = {
       </g>`
   },
 
-  "telephone-metadata": {
+  "the-telephone": {
+    far: `
+      <g class="s-faint">
+        <path d="M40,260 L40,150 L360,150" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="80" y="150" width="1.5" height="110"/><rect x="160" y="150" width="1.5" height="110"/>
+        <rect x="240" y="150" width="1.5" height="110"/><rect x="320" y="150" width="1.5" height="110"/>
+      </g>`,
+    near: `
+      <g transform="translate(150,0)">
+        <rect class="s-iron" x="-30" y="150" width="60" height="80" rx="2"/>
+        <circle class="s-paper" cx="0" cy="176" r="16"/>
+        <path class="s-iron" d="M-16,176 a16,16 0 0 1 32,0" fill="none" stroke="currentColor" stroke-width="3"/>
+        <rect class="s-iron" x="-4" y="130" width="8" height="20"/>
+        <rect class="s-iron" x="-14" y="126" width="28" height="6"/>
+        <path class="s-faint" d="M30,190 C60,190 60,230 90,230" stroke="currentColor" stroke-width="2" fill="none"/>
+      </g>
+      <g transform="translate(280,0)">
+        <rect class="s-clay" x="-40" y="160" width="80" height="70" rx="2"/>
+        <g class="s-paper" opacity="0.9">
+          <circle cx="-22" cy="180" r="6"/><circle cx="0" cy="180" r="6"/><circle cx="22" cy="180" r="6"/>
+          <circle cx="-22" cy="198" r="6"/><circle cx="0" cy="198" r="6"/><circle cx="22" cy="198" r="6"/>
+        </g>
+        <path class="s-iron" d="M-40,190 C-56,190 -56,210 -40,210" fill="none" stroke="currentColor" stroke-width="2"/>
+      </g>`
+  },
+
+  "the-number-you-dialed": {
     far: `
       <g class="s-faint">
         <path d="M60,260 L60,120 L340,120 L340,260" fill="none" stroke="currentColor" stroke-width="1.5"/>
