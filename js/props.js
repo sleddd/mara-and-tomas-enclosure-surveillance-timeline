@@ -148,6 +148,27 @@ const PROPS = {
       </g>`
   },
 
+  "the-commons-enclosed": {
+    far: `
+      <g class="s-faint">
+        <path d="M0,260 L0,220 L200,220 L200,260 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M40,220 L40,260 M80,220 L80,260 M120,220 L120,260 M160,220 L160,260" stroke="currentColor" stroke-width="1"/>
+      </g>`,
+    near: `
+      <g>
+        <rect class="s-clay" x="210" y="222" width="6" height="38"/>
+        <rect class="s-clay" x="250" y="218" width="6" height="42"/>
+        <rect class="s-clay" x="290" y="224" width="6" height="36"/>
+        <rect class="s-clay" x="330" y="220" width="6" height="40"/>
+        <path class="s-iron" d="M210,228 L256,212 L296,230" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+        <g transform="translate(340,0)">
+          <path class="s-iron" d="M-22,260 L-18,196 L18,196 L22,260 Z"/>
+          <path class="s-iron" d="M-28,196 L0,166 L28,196 Z"/>
+          <rect class="s-glow" x="-8" y="216" width="16" height="20"/>
+        </g>
+      </g>`
+  },
+
   "village-and-manor": {
     far: `
       <g transform="translate(268,0)" class="s-iron">
