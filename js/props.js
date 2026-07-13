@@ -451,6 +451,32 @@ const PROPS = {
       </g>`
   },
 
+  "the-commute": {
+    far: `
+      <g class="s-faint">
+        <rect x="10" y="150" width="70" height="90"/>
+        <path d="M4,150 L45,120 L86,150 Z"/>
+        <rect x="300" y="180" width="90" height="60"/>
+        <rect x="308" y="188" width="16" height="16"/><rect x="332" y="188" width="16" height="16"/>
+        <rect x="356" y="188" width="16" height="16"/><rect x="308" y="212" width="16" height="16"/>
+        <rect x="332" y="212" width="16" height="16"/><rect x="356" y="212" width="16" height="16"/>
+      </g>`,
+    near: `
+      <g>
+        <rect class="s-iron" x="0" y="236" width="400" height="3" opacity="0.6"/>
+        <rect class="s-faint" x="40" y="234" width="24" height="2"/>
+        <rect class="s-faint" x="100" y="234" width="24" height="2"/>
+        <rect class="s-faint" x="160" y="234" width="24" height="2"/>
+        <g transform="translate(200,0)">
+          <path class="s-clay" d="M-40,236 L-34,214 C-30,206 30,206 34,214 L40,236 Z"/>
+          <path class="s-iron" d="M-24,214 L-14,198 L14,198 L24,214 Z" opacity="0.75"/>
+          <circle class="s-iron" cx="-24" cy="236" r="8"/>
+          <circle class="s-iron" cx="24" cy="236" r="8"/>
+          <rect class="s-glow" x="-30" y="220" width="12" height="8" opacity="0.7"/>
+        </g>
+      </g>`
+  },
+
   "the-wired-home": {
     far: `
       <g transform="translate(250,0)">
